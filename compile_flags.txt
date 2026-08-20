@@ -6,4 +6,3 @@ arm64
 -D_THREAD_SAFE
 -Wall
 -Wextra
--lraylib
