@@ -49,9 +49,10 @@ int main() {
 
         Vector2 mouse_pos = GetMousePosition();
 
-        if (!wave_emitted && mouse_pos.x > 0 && mouse_pos.y > 0) {
+        if (interval >= 1 && mouse_pos.x > 0 && mouse_pos.y > 0) {
+            
             InitWave(mouse_pos);
-            wave_emitted = true;
+            interval = 0; //sends always a new particle 
         }
 
         BeginDrawing();
