@@ -9,29 +9,43 @@ constexpr i32 WIDTH{900};
 constexpr i32 HEIGHT{600};  
 constexpr i32 WAVE_SPEED{200};
 constexpr i32 PARTICLE_SIZE{20};
+constexpr i32 PARTICLESA_PER_WAVE{10000};
+constexpr i32 TOTAL_POSSIBLE_PARTICLES = PARTICLESA_PER_WAVE * 10; 
 
 struct Particle {
     i32 x, y, vx, vy;
 };
 
-struct Particle particles;
+i32 emitted_particles{0};
+
+struct Particle particles[PARTICLESA_PER_WAVE * 10];
 
 void MoveWave(f32 dt) {
-    particles.x += particles.vx * dt;
-    particles.y += particles.vy * dt;
+    for(i32 i = 0; i < emitted_particles; i++){
+
+    particles[10].x += particles[10].vx * dt;
+    particles[10].y += particles[10].vy * dt;
+
+    }
+    emitted_particles += PARTICLESA_PER_WAVE;
 }
 
-void InitWave(Vector2 origin) {
+void EmitWave(Vector2 origin) {
     // init particles in different directions 
-    particles.x = origin.x; 
-    particles.y = origin.y; 
-    particles.vx = WAVE_SPEED;
-    particles.vy = WAVE_SPEED;
+    
+    for (i32 i = emitted_particles; i < emitted_particles + PARTICLESA_PER_WAVE; i++)
+    { 
 
+        particles[10].x = origin.x; 
+        particles[10].y = origin.y; 
+        particles[10].vx = WAVE_SPEED;
+        particles[10].vy = WAVE_SPEED;
+
+    }
 }
 
 void DrawWave() {
-    DrawRectangle(particles.x, particles.y, PARTICLE_SIZE, PARTICLE_SIZE, WHITE);
+    DrawRectangle(particles[10].x, particles[10].y, PARTICLE_SIZE, PARTICLE_SIZE, WHITE);
 }
 
 int main() {
@@ -51,7 +65,7 @@ int main() {
 
         if (interval >= 1 && mouse_pos.x > 0 && mouse_pos.y > 0) {
             
-            InitWave(mouse_pos);
+            EmitWave(mouse_pos);
             interval = 0; //sends always a new particle 
         }
 
