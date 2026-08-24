@@ -32,8 +32,7 @@ void MoveWave(f32 dt) {
 
 void EmitWave(Vector2 origin) {
     // init particles in different directions 
-    
-    for (i32 i = emitted_particles; i < emitted_particles + PARTICLESA_PER_WAVE; i++)
+    for (i32 i = emitted_particles % TOTAL_POSSIBLE_PARTICLES; i < (emitted_particles + PARTICLESA_PER_WAVE) % TOTAL_POSSIBLE_PARTICLES; i++)
     { 
 
         particles[10].x = origin.x; 
