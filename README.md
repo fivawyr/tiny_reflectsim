@@ -17,7 +17,7 @@ g++ code.cpp -o reflect \y
     -lraylib
 ./greflection
 ```
-![Demo](resources/screenshot.png)
+![Demo](resources/Screenshot.png)
 > Screenshot from the application 
 ### Resources 
 - [Daniel Hirsch](https://www.youtube.com/@HirschDaniel/featured)
