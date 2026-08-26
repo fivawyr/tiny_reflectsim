@@ -1,80 +1,111 @@
 #include <raylib.h>
 #include <cstdint>
+#include <cmath>
 
 typedef int32_t i32;
 typedef float f32;
-typedef double f64;
 
 constexpr i32 WIDTH{900};
-constexpr i32 HEIGHT{600};  
-constexpr i32 WAVE_SPEED{200};
-constexpr i32 PARTICLE_SIZE{20};
-constexpr i32 PARTICLESA_PER_WAVE{10000};
-constexpr i32 TOTAL_POSSIBLE_PARTICLES = PARTICLESA_PER_WAVE * 10; 
+constexpr i32 HEIGHT{600};
+constexpr f32 WAVE_SPEED{200.0f};
+constexpr f32 MAX_RADIUS{1200.0f};
+constexpr i32 MAX_WAVES{32};
+constexpr f32 EMIT_INTERVAL{1.0f}; 
 
-struct Particle {
-    i32 x, y, vx, vy;
+struct Wave_Object
+{
+    Vector2 origin;
+    f32 radius;
+    bool active;
 };
 
-i32 emitted_particles{0};
+Wave_Object waves[MAX_WAVES];
+i32 wave_count = 0;
 
-struct Particle particles[PARTICLESA_PER_WAVE * 10];
+Color WaveColor(f32 t) 
+{
 
-void MoveWave(f32 dt) {
-    for(i32 i = 0; i < emitted_particles; i++){
-
-    particles[10].x += particles[10].vx * dt;
-    particles[10].y += particles[10].vy * dt;
-
+    Color hot = {255, 255, 255, 255}; 
+    Color mid = {80, 200, 255, 255}; 
+    Color cold = {20, 40, 120, 255}; 
+    Color a, b;
+    f32 local_t;
+    if (t < 0.5f) {
+        a = hot; b = mid;
+        local_t = t / 0.5f;
+    } else {
+        a = mid; b = cold;
+        local_t = (t - 0.5f) / 0.5f;
     }
-    emitted_particles += PARTICLESA_PER_WAVE;
+
+    Color result;
+    result.r = (unsigned char)(a.r + (b.r - a.r) * local_t);
+    result.g = (unsigned char)(a.g + (b.g - a.g) * local_t);
+    result.b = (unsigned char)(a.b + (b.b - a.b) * local_t);
+    result.a = 255;
+    return result;
 }
 
-void EmitWave(Vector2 origin) {
-    // init particles in different directions 
-    for (i32 i = emitted_particles % TOTAL_POSSIBLE_PARTICLES; i < (emitted_particles + PARTICLESA_PER_WAVE) % TOTAL_POSSIBLE_PARTICLES; i++)
-    { 
+void EmitWave(Vector2 origin) 
+{
+    i32 idx = wave_count % MAX_WAVES;
+    waves[idx].origin = origin;
+    waves[idx].radius = 0.0f;
+    waves[idx].active = true;
+    wave_count++;
+}
 
-        particles[10].x = origin.x; 
-        particles[10].y = origin.y; 
-        particles[10].vx = WAVE_SPEED;
-        particles[10].vy = WAVE_SPEED;
-
+void UpdateWaves(f32 dt) 
+{
+    for (i32 i = 0; i < MAX_WAVES; i++) {
+        if (!waves[i].active) continue;
+        waves[i].radius += WAVE_SPEED * dt;
+        if (waves[i].radius > MAX_RADIUS) {
+            waves[i].active = false;
+        }
     }
 }
 
-void DrawWave() {
-    DrawRectangle(particles[10].x, particles[10].y, PARTICLE_SIZE, PARTICLE_SIZE, WHITE);
+void DrawWaves() 
+{
+    for (i32 i = 0; i < MAX_WAVES; i++) 
+    {
+        if (!waves[i].active) continue;
+        f32 t = waves[i].radius / MAX_RADIUS; 
+        f32 fade = 1.0f - t; 
+        Color base_color = WaveColor(t);
+        Color outer_color = Fade(base_color, fade);
+        Color inner_color = Fade(base_color, fade * 0.5f);
+        f32 thickness = 2.5f + sinf(waves[i].radius * 0.05f) * 1.2f;
+        DrawRing(waves[i].origin, waves[i].radius - thickness, waves[i].radius, 0, 360, 64, outer_color);
+        f32 inner_radius = waves[i].radius * 0.85f;
+        DrawRing(waves[i].origin, inner_radius - thickness * 0.6f, inner_radius, 0, 360, 64, inner_color);
+    }
 }
 
 int main() {
-   
     InitWindow(WIDTH, HEIGHT, "Reflection Simulation");
     SetTargetFPS(60);
-
-    bool wave_emitted = false;
-    f32 interval {0};
+    f32 interval{0};
 
     while (!WindowShouldClose()) {
-
         f32 dt = GetFrameTime();
         interval += dt;
-
         Vector2 mouse_pos = GetMousePosition();
 
-        if (interval >= 1 && mouse_pos.x > 0 && mouse_pos.y > 0) {
-            
+        if (interval >= EMIT_INTERVAL) {
             EmitWave(mouse_pos);
-            interval = 0; //sends always a new particle 
+            interval = 0;
         }
 
+        UpdateWaves(dt);
+
         BeginDrawing();
-        MoveWave(GetFrameTime());
         ClearBackground(BLACK);
-        DrawRectangleV(mouse_pos, (Vector2){10, 10}, WHITE);
-        DrawWave();
+        DrawWaves();
+        DrawCircleV(mouse_pos, 5, WHITE);
         EndDrawing();
     }
-    return 0;
 
+    return 0;
 }
